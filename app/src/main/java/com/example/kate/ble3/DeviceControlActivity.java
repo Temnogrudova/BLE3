@@ -84,7 +84,7 @@ public class DeviceControlActivity extends Activity{
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the user interface.
                   getQuatCharacteristic(mBluetoothLeService.getSupportedGattServices());
-               // displayGattServices(mBluetoothLeService.getSupportedGattServices());
+                //displayGattServices(mBluetoothLeService.getSupportedGattServices());
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
             }
@@ -220,15 +220,17 @@ public class DeviceControlActivity extends Activity{
     private void displayData(String data) {
         if (data != null) {
             byte[] uuidBytes = data.getBytes();
-            if (uuidBytes.length == 14) {
+            //if (uuidBytes.length == 14) {
                 int t = byteArrayToInt(uuidBytes, 0, 2);
                 int x = byteArrayToInt(uuidBytes, 2, 4);
                 int y = byteArrayToInt(uuidBytes, 6, 4);
                 int z = byteArrayToInt(uuidBytes, 10, 4);
                 String uuidIntToStr = "x = "+ x + "; y = " + y + "; z = "+ z + "; t = " + t;
+
                 mDataField.setText(uuidIntToStr);
-            }
-           // mDataField.setText(data);
+          // }
+
+         //   mDataField.setText(data);
         }
     }
     // Demonstrates how to iterate through the supported GATT Services/Characteristics.
@@ -243,7 +245,7 @@ public class DeviceControlActivity extends Activity{
         // Loops through available GATT Services.
         for (BluetoothGattService gattService : gattServices) {
             uuid = gattService.getUuid().toString();
-            if (uuid == "номер службы, в которой находится характеристика с квадратионом"){
+            if (uuid.equals("fd39a000-04c5-7f11-e4bf-ec0002a5c51b")){
                 List<BluetoothGattCharacteristic> gattCharacteristics =
                         gattService.getCharacteristics();
                 ArrayList<BluetoothGattCharacteristic> charas =
@@ -251,7 +253,7 @@ public class DeviceControlActivity extends Activity{
                 for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
                     //charas.add(gattCharacteristic);
                     uuid = gattCharacteristic.getUuid().toString();
-                    if ((uuid == "номер характеристики с квадратионом")&(gattCharacteristic != null)){
+                    if ((uuid.equals("fd39a007-04c5-7f11-e4bf-ec0002a5c51b"))&(gattCharacteristic != null)){
 
                         final int charaProp = gattCharacteristic.getProperties();
                         if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
@@ -273,8 +275,6 @@ public class DeviceControlActivity extends Activity{
                 }
                // mGattCharacteristics.add(charas);
             }
-           else
-                break;
         }
 
     };
