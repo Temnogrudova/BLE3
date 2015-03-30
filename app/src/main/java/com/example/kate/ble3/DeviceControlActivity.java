@@ -86,7 +86,8 @@ public class DeviceControlActivity extends Activity{
                   getQuatCharacteristic(mBluetoothLeService.getSupportedGattServices());
                 //displayGattServices(mBluetoothLeService.getSupportedGattServices());
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-                displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+//                displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+                displayData(intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA));
             }
         }
     };
@@ -209,28 +210,20 @@ public class DeviceControlActivity extends Activity{
         });
     }
 
-    private static int byteArrayToInt(byte[] b, int start, int length) {
-        int dt = 0;
-        if ((b[start] & 0x80) != 0)
-            dt = Integer.MAX_VALUE;
-        for (int i = 0; i < length; i++)
-            dt = (dt << 8) + (b[start++] & 255);
-        return dt;
-    }
-    private void displayData(String data) {
+    private void displayData(byte[] data) {
         if (data != null) {
-            byte[] uuidBytes = data.getBytes();
-            //if (uuidBytes.length == 14) {
-                int t = byteArrayToInt(uuidBytes, 0, 2);
-                int x = byteArrayToInt(uuidBytes, 2, 4);
-                int y = byteArrayToInt(uuidBytes, 6, 4);
-                int z = byteArrayToInt(uuidBytes, 10, 4);
-                String uuidIntToStr = "x = "+ x + "; y = " + y + "; z = "+ z + "; t = " + t;
-
-                mDataField.setText(uuidIntToStr);
-          // }
-
-         //   mDataField.setText(data);
+            int t = (short)((data[1] << 8) + data[0]) + 32768;
+            double x = (short)((data[5] << 24)+ (data[4] << 16) + (data[3] << 8) + data[2]) + 32768;
+            double y = (short)((data[9] << 24)+ (data[8] << 16) + (data[7] << 8) + data[6]) + 32768;
+            double z = (short)((data[13] << 24)+ (data[12] << 16) + (data[11] << 8) + data[10]) + 32768;
+            double w = (short)((data[17] << 24)+ (data[16] << 16) + (data[15] << 8) + data[14]) + 32768;
+            double l = Math.sqrt(x * x + y * y + z * z + w * w);
+            x /= l;
+            y /= l;
+            z /= l;
+            w /= l;
+            String DataDoubleToStr = "t = " + t + " ; x = "+ x + "; y = " + y + "; z = "+ z + "; w = " + w;
+            mDataField.setText(DataDoubleToStr);
         }
     }
     // Demonstrates how to iterate through the supported GATT Services/Characteristics.
