@@ -84,9 +84,10 @@ public class DeviceControlActivity extends Activity{
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the user interface.
                   getQuatCharacteristic(mBluetoothLeService.getSupportedGattServices());
-               // displayGattServices(mBluetoothLeService.getSupportedGattServices());
+                //displayGattServices(mBluetoothLeService.getSupportedGattServices());
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-                displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+//                displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+                displayData(intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA));
             }
         }
     };
@@ -209,26 +210,20 @@ public class DeviceControlActivity extends Activity{
         });
     }
 
-    private static int byteArrayToInt(byte[] b, int start, int length) {
-        int dt = 0;
-        if ((b[start] & 0x80) != 0)
-            dt = Integer.MAX_VALUE;
-        for (int i = 0; i < length; i++)
-            dt = (dt << 8) + (b[start++] & 255);
-        return dt;
-    }
-    private void displayData(String data) {
+    private void displayData(byte[] data) {
         if (data != null) {
-            byte[] uuidBytes = data.getBytes();
-            if (uuidBytes.length == 14) {
-                int t = byteArrayToInt(uuidBytes, 0, 2);
-                int x = byteArrayToInt(uuidBytes, 2, 4);
-                int y = byteArrayToInt(uuidBytes, 6, 4);
-                int z = byteArrayToInt(uuidBytes, 10, 4);
-                String uuidIntToStr = "x = "+ x + "; y = " + y + "; z = "+ z + "; t = " + t;
-                mDataField.setText(uuidIntToStr);
-            }
-           // mDataField.setText(data);
+            int t = (short)((data[1] << 8) + data[0]) + 32768;
+            double x = (short)((data[5] << 24)+ (data[4] << 16) + (data[3] << 8) + data[2]) + 32768;
+            double y = (short)((data[9] << 24)+ (data[8] << 16) + (data[7] << 8) + data[6]) + 32768;
+            double z = (short)((data[13] << 24)+ (data[12] << 16) + (data[11] << 8) + data[10]) + 32768;
+            double w = (short)((data[17] << 24)+ (data[16] << 16) + (data[15] << 8) + data[14]) + 32768;
+            double l = Math.sqrt(x * x + y * y + z * z + w * w);
+            x /= l;
+            y /= l;
+            z /= l;
+            w /= l;
+            String DataDoubleToStr = "t = " + t + " ; x = "+ x + "; y = " + y + "; z = "+ z + "; w = " + w;
+            mDataField.setText(DataDoubleToStr);
         }
     }
     // Demonstrates how to iterate through the supported GATT Services/Characteristics.
@@ -243,7 +238,7 @@ public class DeviceControlActivity extends Activity{
         // Loops through available GATT Services.
         for (BluetoothGattService gattService : gattServices) {
             uuid = gattService.getUuid().toString();
-            if (uuid == "номер службы, в которой находится характеристика с квадратионом"){
+            if (uuid.equals("fd39a000-04c5-7f11-e4bf-ec0002a5c51b")){
                 List<BluetoothGattCharacteristic> gattCharacteristics =
                         gattService.getCharacteristics();
                 ArrayList<BluetoothGattCharacteristic> charas =
@@ -251,7 +246,7 @@ public class DeviceControlActivity extends Activity{
                 for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
                     //charas.add(gattCharacteristic);
                     uuid = gattCharacteristic.getUuid().toString();
-                    if ((uuid == "номер характеристики с квадратионом")&(gattCharacteristic != null)){
+                    if ((uuid.equals("fd39a007-04c5-7f11-e4bf-ec0002a5c51b"))&(gattCharacteristic != null)){
 
                         final int charaProp = gattCharacteristic.getProperties();
                         if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
@@ -273,8 +268,6 @@ public class DeviceControlActivity extends Activity{
                 }
                // mGattCharacteristics.add(charas);
             }
-           else
-                break;
         }
 
     };
